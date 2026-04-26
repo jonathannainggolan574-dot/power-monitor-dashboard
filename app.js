@@ -45,7 +45,6 @@ async function fetchData() {
 }
 
 function updateUI(d) {
-  // Phase R
   document.getElementById('v1').textContent = d.v1.toFixed(1);
   document.getElementById('i1').textContent = d.i1.toFixed(2);
   document.getElementById('f1').textContent = d.f1.toFixed(1);
@@ -54,7 +53,6 @@ function updateUI(d) {
   document.getElementById('q1').textContent = d.q1.toFixed(1);
   document.getElementById('pf1').textContent = d.pf1.toFixed(2);
 
-  // Phase S
   document.getElementById('v2').textContent = d.v2.toFixed(1);
   document.getElementById('i2').textContent = d.i2.toFixed(2);
   document.getElementById('f2').textContent = d.f2.toFixed(1);
@@ -63,7 +61,6 @@ function updateUI(d) {
   document.getElementById('q2').textContent = d.q2.toFixed(1);
   document.getElementById('pf2').textContent = d.pf2.toFixed(2);
 
-  // Phase T
   document.getElementById('v3').textContent = d.v3.toFixed(1);
   document.getElementById('i3').textContent = d.i3.toFixed(2);
   document.getElementById('f3').textContent = d.f3.toFixed(1);
@@ -72,13 +69,11 @@ function updateUI(d) {
   document.getElementById('q3').textContent = d.q3.toFixed(1);
   document.getElementById('pf3').textContent = d.pf3.toFixed(2);
 
-  // Environment
   document.getElementById('temp').textContent = d.temp.toFixed(1);
   document.getElementById('hum').textContent = d.hum.toFixed(1);
   document.getElementById('fan-status').textContent = d.fan ? 'ON' : 'OFF';
   document.getElementById('fan-status').style.color = d.fan ? '#10b981' : '#6b7280';
 
-  // Protection
   updateProtection('pfr', d.pfr);
   updateProtection('ovr', d.ovr);
   updateProtection('ocr', d.ocr);
@@ -87,7 +82,6 @@ function updateUI(d) {
   detectTripEvent('OVR', 'Over Voltage', d.ovr, 'ovr');
   detectTripEvent('OCR', 'Over Current', d.ocr, 'ocr');
 
-  // Setpoint
   document.getElementById('set-ovr-display').textContent = Math.round(d.set_ovr);
   document.getElementById('set-ocr-display').textContent = Math.round(d.set_ocr);
 
@@ -165,24 +159,25 @@ async function sendSetpoint(resource, value, label) {
   } catch (err) { alert(`Error: ${err.message}`); }
 }
 
+// ===== CHART ZOOMED =====
 const ctx = document.getElementById('voltageChart').getContext('2d');
 const chart = new Chart(ctx, {
   type: 'line',
   data: {
     labels: [],
     datasets: [
-      { label: 'Phase R', data: [], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)', tension: 0.3, borderWidth: 2 },
-      { label: 'Phase S', data: [], borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.1)', tension: 0.3, borderWidth: 2 },
-      { label: 'Phase T', data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.3, borderWidth: 2 }
+      { label: 'Phase R', data: [], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)', tension: 0.3, borderWidth: 3, pointRadius: 4, borderDash: [] },
+      { label: 'Phase S', data: [], borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.1)', tension: 0.3, borderWidth: 3, pointRadius: 4, borderDash: [8, 4] },
+      { label: 'Phase T', data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.3, borderWidth: 3, pointRadius: 4, borderDash: [2, 2] }
     ]
   },
   options: {
     responsive: true, maintainAspectRatio: false,
     scales: {
-      y: { min: 150, max: 280, grid: { color: '#1f2937' }, ticks: { color: '#9ca3af' } },
+      y: { min: 210, max: 230, grid: { color: '#1f2937' }, ticks: { color: '#9ca3af', stepSize: 2 } },
       x: { grid: { color: '#1f2937' }, ticks: { color: '#9ca3af', maxTicksLimit: 6 } }
     },
-    plugins: { legend: { labels: { color: '#e4e6eb' } } }
+    plugins: { legend: { labels: { color: '#e4e6eb', usePointStyle: true } } }
   }
 });
 
