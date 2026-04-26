@@ -1,12 +1,11 @@
 // ============ LOGIN CONFIG ============
-const PASSWORD = "admin123";  // GANTI password kamu di sini
+const PASSWORD = "admin123";
 // ======================================
 
 function checkLogin(event) {
   event.preventDefault();
   const input = document.getElementById('login-password').value;
   const errorEl = document.getElementById('login-error');
-  
   if (input === PASSWORD) {
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
@@ -31,18 +30,11 @@ const CHART_MAX_POINTS = 30;
 const tripLog = JSON.parse(localStorage.getItem('tripLog') || '[]');
 const lastState = { pfr: false, ovr: false, ocr: false };
 
-console.log("=== Power Monitor Started ===");
-
-// ===== FETCH DATA =====
 async function fetchData() {
   try {
     const url = `${API_BASE}/semua_data?authorization=${TOKEN}`;
     const res = await fetch(url);
-    
-    if (!res.ok) {
-      throw new Error('HTTP ' + res.status);
-    }
-    
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     updateUI(data);
     setConnectionStatus(true);
@@ -52,25 +44,41 @@ async function fetchData() {
   }
 }
 
-// ===== UPDATE UI =====
 function updateUI(d) {
+  // Phase R
   document.getElementById('v1').textContent = d.v1.toFixed(1);
   document.getElementById('i1').textContent = d.i1.toFixed(2);
+  document.getElementById('f1').textContent = d.f1.toFixed(1);
   document.getElementById('p1').textContent = d.p1.toFixed(1);
+  document.getElementById('s1').textContent = d.s1.toFixed(1);
+  document.getElementById('q1').textContent = d.q1.toFixed(1);
+  document.getElementById('pf1').textContent = d.pf1.toFixed(2);
 
+  // Phase S
   document.getElementById('v2').textContent = d.v2.toFixed(1);
   document.getElementById('i2').textContent = d.i2.toFixed(2);
+  document.getElementById('f2').textContent = d.f2.toFixed(1);
   document.getElementById('p2').textContent = d.p2.toFixed(1);
+  document.getElementById('s2').textContent = d.s2.toFixed(1);
+  document.getElementById('q2').textContent = d.q2.toFixed(1);
+  document.getElementById('pf2').textContent = d.pf2.toFixed(2);
 
+  // Phase T
   document.getElementById('v3').textContent = d.v3.toFixed(1);
   document.getElementById('i3').textContent = d.i3.toFixed(2);
+  document.getElementById('f3').textContent = d.f3.toFixed(1);
   document.getElementById('p3').textContent = d.p3.toFixed(1);
+  document.getElementById('s3').textContent = d.s3.toFixed(1);
+  document.getElementById('q3').textContent = d.q3.toFixed(1);
+  document.getElementById('pf3').textContent = d.pf3.toFixed(2);
 
+  // Environment
   document.getElementById('temp').textContent = d.temp.toFixed(1);
   document.getElementById('hum').textContent = d.hum.toFixed(1);
   document.getElementById('fan-status').textContent = d.fan ? 'ON' : 'OFF';
   document.getElementById('fan-status').style.color = d.fan ? '#10b981' : '#6b7280';
 
+  // Protection
   updateProtection('pfr', d.pfr);
   updateProtection('ovr', d.ovr);
   updateProtection('ocr', d.ocr);
@@ -79,6 +87,7 @@ function updateUI(d) {
   detectTripEvent('OVR', 'Over Voltage', d.ovr, 'ovr');
   detectTripEvent('OCR', 'Over Current', d.ocr, 'ocr');
 
+  // Setpoint
   document.getElementById('set-ovr-display').textContent = Math.round(d.set_ovr);
   document.getElementById('set-ocr-display').textContent = Math.round(d.set_ocr);
 
@@ -90,44 +99,25 @@ function updateUI(d) {
 function updateProtection(name, tripped) {
   const card = document.getElementById('card-' + name);
   const status = document.getElementById('status-' + name);
-  if (tripped) {
-    card.classList.add('tripped');
-    status.textContent = 'TRIPPED';
-  } else {
-    card.classList.remove('tripped');
-    status.textContent = 'NORMAL';
-  }
+  if (tripped) { card.classList.add('tripped'); status.textContent = 'TRIPPED'; }
+  else { card.classList.remove('tripped'); status.textContent = 'NORMAL'; }
 }
 
 function setConnectionStatus(online) {
   const dot = document.getElementById('conn-dot');
   const text = document.getElementById('conn-text');
-  if (online) {
-    dot.className = 'dot online';
-    text.textContent = 'Online';
-  } else {
-    dot.className = 'dot offline';
-    text.textContent = 'Offline';
-  }
+  if (online) { dot.className = 'dot online'; text.textContent = 'Online'; }
+  else { dot.className = 'dot offline'; text.textContent = 'Offline'; }
 }
 
-// ===== TRIP DETECTION =====
 function detectTripEvent(name, desc, current, key) {
-  if (current && !lastState[key]) {
-    addLogEntry(name, desc, 'TRIPPED');
-  } else if (!current && lastState[key]) {
-    addLogEntry(name, desc, 'RECOVERED');
-  }
+  if (current && !lastState[key]) addLogEntry(name, desc, 'TRIPPED');
+  else if (!current && lastState[key]) addLogEntry(name, desc, 'RECOVERED');
   lastState[key] = current;
 }
 
 function addLogEntry(type, desc, status) {
-  const entry = {
-    time: new Date().toLocaleString('en-GB'),
-    type: type,
-    desc: desc,
-    status: status
-  };
+  const entry = { time: new Date().toLocaleString('en-GB'), type, desc, status };
   tripLog.unshift(entry);
   if (tripLog.length > 50) tripLog.pop();
   localStorage.setItem('tripLog', JSON.stringify(tripLog));
@@ -158,47 +148,23 @@ function clearLog() {
   }
 }
 
-// ===== SLIDER CONTROLS =====
 const sliderOVR = document.getElementById('slider-ovr');
 const sliderOCR = document.getElementById('slider-ocr');
+sliderOVR.addEventListener('input', () => { document.getElementById('set-ovr-display').textContent = sliderOVR.value; });
+sliderOCR.addEventListener('input', () => { document.getElementById('set-ocr-display').textContent = sliderOCR.value; });
 
-sliderOVR.addEventListener('input', () => {
-  document.getElementById('set-ovr-display').textContent = sliderOVR.value;
-});
-
-sliderOCR.addEventListener('input', () => {
-  document.getElementById('set-ocr-display').textContent = sliderOCR.value;
-});
-
-async function applyOVR() {
-  const val = parseFloat(sliderOVR.value);
-  await sendSetpoint('atur_ovr', val, 'OVR');
-}
-
-async function applyOCR() {
-  const val = parseFloat(sliderOCR.value);
-  await sendSetpoint('atur_ocr', val, 'OCR');
-}
+async function applyOVR() { await sendSetpoint('atur_ovr', parseFloat(sliderOVR.value), 'OVR'); }
+async function applyOCR() { await sendSetpoint('atur_ocr', parseFloat(sliderOCR.value), 'OCR'); }
 
 async function sendSetpoint(resource, value, label) {
   try {
     const url = `${API_BASE}/${resource}?authorization=${TOKEN}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(value)
-    });
-    if (res.ok) {
-      alert(`${label} setpoint updated to ${value}`);
-    } else {
-      alert(`Failed to update ${label}: HTTP ${res.status}`);
-    }
-  } catch (err) {
-    alert(`Error: ${err.message}`);
-  }
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value) });
+    if (res.ok) alert(`${label} updated to ${value}`);
+    else alert(`Failed: HTTP ${res.status}`);
+  } catch (err) { alert(`Error: ${err.message}`); }
 }
 
-// ===== CHART =====
 const ctx = document.getElementById('voltageChart').getContext('2d');
 const chart = new Chart(ctx, {
   type: 'line',
@@ -211,8 +177,7 @@ const chart = new Chart(ctx, {
     ]
   },
   options: {
-    responsive: true,
-    maintainAspectRatio: false,
+    responsive: true, maintainAspectRatio: false,
     scales: {
       y: { min: 150, max: 280, grid: { color: '#1f2937' }, ticks: { color: '#9ca3af' } },
       x: { grid: { color: '#1f2937' }, ticks: { color: '#9ca3af', maxTicksLimit: 6 } }
@@ -234,7 +199,6 @@ function pushChartData(v1, v2, v3) {
   chart.update('none');
 }
 
-// ===== INIT =====
 renderLog();
 fetchData();
 setInterval(fetchData, REFRESH_INTERVAL);
