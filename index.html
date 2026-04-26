@@ -8,7 +8,6 @@
 </head>
 <body>
 
-<!-- ===== LOGIN SCREEN ===== -->
 <div id="login-screen" class="login-screen">
   <div class="login-box">
     <div class="login-header">
@@ -27,7 +26,6 @@
   </div>
 </div>
 
-<!-- ===== DASHBOARD ===== -->
 <div id="dashboard" class="hidden">
 
 <header>
@@ -55,18 +53,13 @@
           <span class="phase-icon">R</span>
         </div>
         <div class="phase-values">
-          <div class="value-row">
-            <span class="value-label">Voltage</span>
-            <span class="value-data"><span id="v1">0</span><span class="unit">V</span></span>
-          </div>
-          <div class="value-row">
-            <span class="value-label">Current</span>
-            <span class="value-data"><span id="i1">0</span><span class="unit">A</span></span>
-          </div>
-          <div class="value-row">
-            <span class="value-label">Power</span>
-            <span class="value-data"><span id="p1">0</span><span class="unit">W</span></span>
-          </div>
+          <div class="value-row"><span class="value-label">Voltage</span><span class="value-data"><span id="v1">0</span><span class="unit">V</span></span></div>
+          <div class="value-row"><span class="value-label">Current</span><span class="value-data"><span id="i1">0</span><span class="unit">A</span></span></div>
+          <div class="value-row"><span class="value-label">Frequency</span><span class="value-data"><span id="f1">0</span><span class="unit">Hz</span></span></div>
+          <div class="value-row"><span class="value-label">Active Power</span><span class="value-data"><span id="p1">0</span><span class="unit">W</span></span></div>
+          <div class="value-row"><span class="value-label">Apparent Power</span><span class="value-data"><span id="s1">0</span><span class="unit">VA</span></span></div>
+          <div class="value-row"><span class="value-label">Reactive Power</span><span class="value-data"><span id="q1">0</span><span class="unit">VAR</span></span></div>
+          <div class="value-row"><span class="value-label">Power Factor</span><span class="value-data"><span id="pf1">0</span></span></div>
         </div>
       </div>
 
@@ -76,18 +69,13 @@
           <span class="phase-icon">S</span>
         </div>
         <div class="phase-values">
-          <div class="value-row">
-            <span class="value-label">Voltage</span>
-            <span class="value-data"><span id="v2">0</span><span class="unit">V</span></span>
-          </div>
-          <div class="value-row">
-            <span class="value-label">Current</span>
-            <span class="value-data"><span id="i2">0</span><span class="unit">A</span></span>
-          </div>
-          <div class="value-row">
-            <span class="value-label">Power</span>
-            <span class="value-data"><span id="p2">0</span><span class="unit">W</span></span>
-          </div>
+          <div class="value-row"><span class="value-label">Voltage</span><span class="value-data"><span id="v2">0</span><span class="unit">V</span></span></div>
+          <div class="value-row"><span class="value-label">Current</span><span class="value-data"><span id="i2">0</span><span class="unit">A</span></span></div>
+          <div class="value-row"><span class="value-label">Frequency</span><span class="value-data"><span id="f2">0</span><span class="unit">Hz</span></span></div>
+          <div class="value-row"><span class="value-label">Active Power</span><span class="value-data"><span id="p2">0</span><span class="unit">W</span></span></div>
+          <div class="value-row"><span class="value-label">Apparent Power</span><span class="value-data"><span id="s2">0</span><span class="unit">VA</span></span></div>
+          <div class="value-row"><span class="value-label">Reactive Power</span><span class="value-data"><span id="q2">0</span><span class="unit">VAR</span></span></div>
+          <div class="value-row"><span class="value-label">Power Factor</span><span class="value-data"><span id="pf2">0</span></span></div>
         </div>
       </div>
 
@@ -97,18 +85,13 @@
           <span class="phase-icon">T</span>
         </div>
         <div class="phase-values">
-          <div class="value-row">
-            <span class="value-label">Voltage</span>
-            <span class="value-data"><span id="v3">0</span><span class="unit">V</span></span>
-          </div>
-          <div class="value-row">
-            <span class="value-label">Current</span>
-            <span class="value-data"><span id="i3">0</span><span class="unit">A</span></span>
-          </div>
-          <div class="value-row">
-            <span class="value-label">Power</span>
-            <span class="value-data"><span id="p3">0</span><span class="unit">W</span></span>
-          </div>
+          <div class="value-row"><span class="value-label">Voltage</span><span class="value-data"><span id="v3">0</span><span class="unit">V</span></span></div>
+          <div class="value-row"><span class="value-label">Current</span><span class="value-data"><span id="i3">0</span><span class="unit">A</span></span></div>
+          <div class="value-row"><span class="value-label">Frequency</span><span class="value-data"><span id="f3">0</span><span class="unit">Hz</span></span></div>
+          <div class="value-row"><span class="value-label">Active Power</span><span class="value-data"><span id="p3">0</span><span class="unit">W</span></span></div>
+          <div class="value-row"><span class="value-label">Apparent Power</span><span class="value-data"><span id="s3">0</span><span class="unit">VA</span></span></div>
+          <div class="value-row"><span class="value-label">Reactive Power</span><span class="value-data"><span id="q3">0</span><span class="unit">VAR</span></span></div>
+          <div class="value-row"><span class="value-label">Power Factor</span><span class="value-data"><span id="pf3">0</span></span></div>
         </div>
       </div>
 
@@ -118,115 +101,50 @@
   <section>
     <h2>Environment</h2>
     <div class="env-grid">
-      <div class="env-card">
-        <div class="env-icon">T°</div>
-        <div class="env-data">
-          <div class="env-label">Temperature</div>
-          <div class="env-value"><span id="temp">0</span><span class="unit">°C</span></div>
-        </div>
-      </div>
-      <div class="env-card">
-        <div class="env-icon">H%</div>
-        <div class="env-data">
-          <div class="env-label">Humidity</div>
-          <div class="env-value"><span id="hum">0</span><span class="unit">%</span></div>
-        </div>
-      </div>
-      <div class="env-card">
-        <div class="env-icon">FAN</div>
-        <div class="env-data">
-          <div class="env-label">Cooling Fan</div>
-          <div class="env-value" id="fan-status">OFF</div>
-        </div>
-      </div>
+      <div class="env-card"><div class="env-icon">T°</div><div class="env-data"><div class="env-label">Temperature</div><div class="env-value"><span id="temp">0</span><span class="unit">°C</span></div></div></div>
+      <div class="env-card"><div class="env-icon">H%</div><div class="env-data"><div class="env-label">Humidity</div><div class="env-value"><span id="hum">0</span><span class="unit">%</span></div></div></div>
+      <div class="env-card"><div class="env-icon">FAN</div><div class="env-data"><div class="env-label">Cooling Fan</div><div class="env-value" id="fan-status">OFF</div></div></div>
     </div>
   </section>
 
   <section>
     <h2>Protection Status</h2>
     <div class="protection-grid">
-      <div class="protection-card" id="card-pfr">
-        <div class="protection-led" id="led-pfr"></div>
-        <div class="protection-info">
-          <div class="protection-name">PFR</div>
-          <div class="protection-desc">Phase Failure Relay</div>
-          <div class="protection-status" id="status-pfr">NORMAL</div>
-        </div>
-      </div>
-      <div class="protection-card" id="card-ovr">
-        <div class="protection-led" id="led-ovr"></div>
-        <div class="protection-info">
-          <div class="protection-name">OVR</div>
-          <div class="protection-desc">Over Voltage Relay</div>
-          <div class="protection-status" id="status-ovr">NORMAL</div>
-        </div>
-      </div>
-      <div class="protection-card" id="card-ocr">
-        <div class="protection-led" id="led-ocr"></div>
-        <div class="protection-info">
-          <div class="protection-name">OCR</div>
-          <div class="protection-desc">Over Current Relay</div>
-          <div class="protection-status" id="status-ocr">NORMAL</div>
-        </div>
-      </div>
+      <div class="protection-card" id="card-pfr"><div class="protection-led" id="led-pfr"></div><div class="protection-info"><div class="protection-name">PFR</div><div class="protection-desc">Phase Failure Relay</div><div class="protection-status" id="status-pfr">NORMAL</div></div></div>
+      <div class="protection-card" id="card-ovr"><div class="protection-led" id="led-ovr"></div><div class="protection-info"><div class="protection-name">OVR</div><div class="protection-desc">Over Voltage Relay</div><div class="protection-status" id="status-ovr">NORMAL</div></div></div>
+      <div class="protection-card" id="card-ocr"><div class="protection-led" id="led-ocr"></div><div class="protection-info"><div class="protection-name">OCR</div><div class="protection-desc">Over Current Relay</div><div class="protection-status" id="status-ocr">NORMAL</div></div></div>
     </div>
   </section>
 
   <section>
     <h2>Setpoint Control</h2>
     <div class="setpoint-grid">
-
       <div class="setpoint-card">
-        <div class="setpoint-header">
-          <span>Over Voltage Limit</span>
-          <span class="setpoint-value"><span id="set-ovr-display">240</span> V</span>
-        </div>
+        <div class="setpoint-header"><span>Over Voltage Limit</span><span class="setpoint-value"><span id="set-ovr-display">240</span> V</span></div>
         <input type="range" id="slider-ovr" min="200" max="300" step="1" value="240">
-        <div class="setpoint-range">
-          <span>200 V</span>
-          <span>300 V</span>
-        </div>
+        <div class="setpoint-range"><span>200 V</span><span>300 V</span></div>
         <button class="btn-apply" onclick="applyOVR()">Apply OVR</button>
       </div>
-
       <div class="setpoint-card">
-        <div class="setpoint-header">
-          <span>Over Current Limit</span>
-          <span class="setpoint-value"><span id="set-ocr-display">10</span> A</span>
-        </div>
+        <div class="setpoint-header"><span>Over Current Limit</span><span class="setpoint-value"><span id="set-ocr-display">10</span> A</span></div>
         <input type="range" id="slider-ocr" min="1" max="100" step="1" value="10">
-        <div class="setpoint-range">
-          <span>1 A</span>
-          <span>100 A</span>
-        </div>
+        <div class="setpoint-range"><span>1 A</span><span>100 A</span></div>
         <button class="btn-apply" onclick="applyOCR()">Apply OCR</button>
       </div>
-
     </div>
   </section>
 
   <section>
     <h2>Voltage Trend (Last 60 Seconds)</h2>
-    <div class="chart-container">
-      <canvas id="voltageChart"></canvas>
-    </div>
+    <div class="chart-container"><canvas id="voltageChart"></canvas></div>
   </section>
 
   <section>
     <h2>Trip History Log</h2>
     <div class="log-container">
       <table class="log-table">
-        <thead>
-          <tr>
-            <th>Timestamp</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="log-tbody">
-          <tr><td colspan="4" class="log-empty">No trip events recorded yet</td></tr>
-        </tbody>
+        <thead><tr><th>Timestamp</th><th>Type</th><th>Description</th><th>Status</th></tr></thead>
+        <tbody id="log-tbody"><tr><td colspan="4" class="log-empty">No trip events recorded yet</td></tr></tbody>
       </table>
     </div>
     <button class="btn-clear" onclick="clearLog()">Clear Log</button>
