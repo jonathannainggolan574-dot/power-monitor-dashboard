@@ -84,7 +84,6 @@ function updateUI(d) {
 
   document.getElementById('set-ovr-display').textContent = Math.round(d.set_ovr);
   document.getElementById('set-ocr-display').textContent = Math.round(d.set_ocr);
-
   document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
 
   pushChartData(d.v1, d.v2, d.v3);
@@ -93,8 +92,21 @@ function updateUI(d) {
 function updateProtection(name, tripped) {
   const card = document.getElementById('card-' + name);
   const status = document.getElementById('status-' + name);
-  if (tripped) { card.classList.add('tripped'); status.textContent = 'TRIPPED'; }
-  else { card.classList.remove('tripped'); status.textContent = 'NORMAL'; }
+  if (tripped) {
+    card.classList.add('tripped');
+    status.textContent = 'TRIPPED';
+    if (name === 'ocr') {
+      const resetBtn = document.getElementById('reset-ocr');
+      if (resetBtn) resetBtn.style.display = 'block';
+    }
+  } else {
+    card.classList.remove('tripped');
+    status.textContent = 'NORMAL';
+    if (name === 'ocr') {
+      const resetBtn = document.getElementById('reset-ocr');
+      if (resetBtn) resetBtn.style.display = 'none';
+    }
+  }
 }
 
 function setConnectionStatus(online) {
@@ -159,7 +171,24 @@ async function sendSetpoint(resource, value, label) {
   } catch (err) { alert(`Error: ${err.message}`); }
 }
 
-// ===== CHART ZOOMED =====
+async function resetOCR() {
+  try {
+    const url = `${API_BASE}/reset_ocr?authorization=${TOKEN}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(true)
+    });
+    if (res.ok) {
+      alert('OCR berhasil direset! Relay akan ON kembali.');
+    } else {
+      alert('Gagal reset OCR: HTTP ' + res.status);
+    }
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+
 const ctx = document.getElementById('voltageChart').getContext('2d');
 const chart = new Chart(ctx, {
   type: 'line',
@@ -167,8 +196,8 @@ const chart = new Chart(ctx, {
     labels: [],
     datasets: [
       { label: 'Phase R', data: [], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)', tension: 0.3, borderWidth: 3, pointRadius: 4, borderDash: [] },
-      { label: 'Phase S', data: [], borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.1)', tension: 0.3, borderWidth: 3, pointRadius: 4, borderDash: [8, 4] },
-      { label: 'Phase T', data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.3, borderWidth: 3, pointRadius: 4, borderDash: [2, 2] }
+      { label: 'Phase S', data: [], borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.1)', tension: 0.3, borderWidth: 3, pointRadius: 4, borderDash: [8,4] },
+      { label: 'Phase T', data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.3, borderWidth: 3, pointRadius: 4, borderDash: [2,2] }
     ]
   },
   options: {
