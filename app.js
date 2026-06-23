@@ -22,7 +22,7 @@ function checkLogin(event) {
 // ============ THINGER.IO CONFIG ============
 const THINGER_USER = "WERR";
 const DEVICE_ID = "stm32_power_monitor";
-const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJ3ZWJfZGFzaGJvYXJkIiwic3ZyIjoiYXAtc291dGhlYXN0LmF3cy50aGluZ2VyLmlvIiwidXNyIjoiV0VSUiJ9.xHEp44PF_sOqnQeaTJUHtQGH2GEU1RxoK-s3v0QPwZo";
+const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJzdG0zMl9wb3dlcl9tb25pdG9yIiwic3ZyIjoiYXAtc291dGhlYXN0LmF3cy50aGluZ2VyLmlvIiwidXNyIjoiV0VSUiJ9.qHE0FTr87v2M_cU5yTrIRF-3ahnpfLUYUz-_R8f2qdI";
 // ===========================================
 
 const API_BASE = `https://backend.thinger.io/v3/users/${THINGER_USER}/devices/${DEVICE_ID}`;
@@ -142,7 +142,17 @@ let lastPfr = false, lastOvr = false, lastOcr = false;
 async function fetchData() {
   try {
     const response = await fetchThinger('/resources/semua_data');
-    const data = response.out;
+    
+    // PERBAIKAN 1: Pastikan kita mengambil data dari properti yang benar. 
+    // Kadang Thinger mengirim langsung tanpa bungkus "out" jika offline/error.
+    const data = response.out !== undefined ? response.out : response;
+
+    // PERBAIKAN 2: Validasi Krusial. Jika 'data' tidak ada, atau 'v1' belum tersedia,
+    // hentikan eksekusi di sini agar web tidak crash ("Cannot read properties of undefined")
+    if (!data || data.v1 === undefined) {
+      console.warn('Data API belum siap atau STM32 offline:', response);
+      return; 
+    }
 
     // Phase R
     document.getElementById('v1').textContent = data.v1.toFixed(1);
@@ -170,14 +180,14 @@ async function fetchData() {
     document.getElementById('q3').textContent = data.q3.toFixed(1);
     document.getElementById('f3').textContent = data.f3.toFixed(1);
     document.getElementById('pf3').textContent = data.pf3.toFixed(2);
-
+    
     // Lingkungan
-    document.getElementById('temp').textContent = data.temp.toFixed(1);
-    document.getElementById('hum').textContent = data.hum.toFixed(1);
+    document.getElementById('temp').textContent = (data.temp || 0).toFixed(1);
+    document.getElementById('hum').textContent = (data.hum || 0).toFixed(1);
 
     // Update Setpoint Display
-    document.getElementById('set-ovr-display').textContent = data.set_ovr;
-    document.getElementById('set-ocr-display').textContent = data.set_ocr;
+    if (data.set_ovr !== undefined) document.getElementById('set-ovr-display').textContent = data.set_ovr;
+    if (data.set_ocr !== undefined) document.getElementById('set-ocr-display').textContent = data.set_ocr;
 
     // Status Proteksi
     updateProtectionStatus('pfr', data.pfr);
@@ -202,13 +212,13 @@ async function fetchData() {
     lastPfr = data.pfr;
     lastOvr = data.ovr;
     lastOcr = data.ocr;
-
+    
     // Lempar data ke Grafik
     const now = new Date();
     const timeLabel = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0') + ':' + now.getSeconds().toString().padStart(2, '0');
     
     updateChart(timeLabel, data);
-
+    
   } catch (error) {
     console.error('Error fetching data:', error);
   }
