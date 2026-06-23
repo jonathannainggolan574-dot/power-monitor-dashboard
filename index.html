@@ -46,12 +46,9 @@
   <section>
     <h2>3-Phase Monitoring</h2>
     <div class="phase-grid">
-      
+
       <div class="phase-card phase-r">
-        <div class="phase-header">
-          <span class="phase-label">PHASE R</span>
-          <span class="phase-icon">R</span>
-        </div>
+        <div class="phase-header"><span class="phase-label">PHASE R</span><span class="phase-icon">R</span></div>
         <div class="phase-values">
           <div class="value-row"><span class="value-label">Voltage</span><span class="value-data"><span id="v1">0</span><span class="unit">V</span></span></div>
           <div class="value-row"><span class="value-label">Current</span><span class="value-data"><span id="i1">0</span><span class="unit">A</span></span></div>
@@ -64,10 +61,7 @@
       </div>
 
       <div class="phase-card phase-s">
-        <div class="phase-header">
-          <span class="phase-label">PHASE S</span>
-          <span class="phase-icon">S</span>
-        </div>
+        <div class="phase-header"><span class="phase-label">PHASE S</span><span class="phase-icon">S</span></div>
         <div class="phase-values">
           <div class="value-row"><span class="value-label">Voltage</span><span class="value-data"><span id="v2">0</span><span class="unit">V</span></span></div>
           <div class="value-row"><span class="value-label">Current</span><span class="value-data"><span id="i2">0</span><span class="unit">A</span></span></div>
@@ -80,10 +74,7 @@
       </div>
 
       <div class="phase-card phase-t">
-        <div class="phase-header">
-          <span class="phase-label">PHASE T</span>
-          <span class="phase-icon">T</span>
-        </div>
+        <div class="phase-header"><span class="phase-label">PHASE T</span><span class="phase-icon">T</span></div>
         <div class="phase-values">
           <div class="value-row"><span class="value-label">Voltage</span><span class="value-data"><span id="v3">0</span><span class="unit">V</span></span></div>
           <div class="value-row"><span class="value-label">Current</span><span class="value-data"><span id="i3">0</span><span class="unit">A</span></span></div>
@@ -110,9 +101,35 @@
   <section>
     <h2>Protection Status</h2>
     <div class="protection-grid">
-      <div class="protection-card" id="card-pfr"><div class="protection-led" id="led-pfr"></div><div class="protection-info"><div class="protection-name">PFR</div><div class="protection-desc">Phase Failure Relay</div><div class="protection-status" id="status-pfr">NORMAL</div></div></div>
-      <div class="protection-card" id="card-ovr"><div class="protection-led" id="led-ovr"></div><div class="protection-info"><div class="protection-name">OVR</div><div class="protection-desc">Over Voltage Relay</div><div class="protection-status" id="status-ovr">NORMAL</div></div></div>
-      <div class="protection-card" id="card-ocr"><div class="protection-led" id="led-ocr"></div><div class="protection-info"><div class="protection-name">OCR</div><div class="protection-desc">Over Current Relay</div><div class="protection-status" id="status-ocr">NORMAL</div></div></div>
+
+      <div class="protection-card" id="card-pfr">
+        <div class="protection-led" id="led-pfr"></div>
+        <div class="protection-info">
+          <div class="protection-name">PFR</div>
+          <div class="protection-desc">Phase Failure Relay</div>
+          <div class="protection-status" id="status-pfr">NORMAL</div>
+        </div>
+      </div>
+
+      <div class="protection-card" id="card-ovr">
+        <div class="protection-led" id="led-ovr"></div>
+        <div class="protection-info">
+          <div class="protection-name">OVR</div>
+          <div class="protection-desc">Over Voltage Relay</div>
+          <div class="protection-status" id="status-ovr">NORMAL</div>
+        </div>
+      </div>
+
+      <div class="protection-card" id="card-ocr">
+        <div class="protection-led" id="led-ocr"></div>
+        <div class="protection-info">
+          <div class="protection-name">OCR</div>
+          <div class="protection-desc">Over Current Relay</div>
+          <div class="protection-status" id="status-ocr">NORMAL</div>
+          <button id="reset-ocr" class="btn-reset" onclick="resetOCR()" style="display:none">🔄 RESET OCR</button>
+        </div>
+      </div>
+
     </div>
   </section>
 
