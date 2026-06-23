@@ -30,6 +30,33 @@ const CHART_MAX_POINTS = 30;
 const tripLog = JSON.parse(localStorage.getItem('tripLog') || '[]');
 const lastState = { pfr: false, ovr: false, ocr: false };
 
+// ===== TOAST NOTIFICATION =====
+function showToast(message, type) {
+  const existing = document.getElementById('toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'toast';
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: ${type === 'success' ? '#10b981' : '#ef4444'};
+    color: white;
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 9999;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    animation: fadeIn 0.3s ease;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => { if (toast) toast.remove(); }, 3000);
+}
+
+// ===== FETCH DATA =====
 async function fetchData() {
   try {
     const url = `${API_BASE}/semua_data?authorization=${TOKEN}`;
@@ -44,6 +71,7 @@ async function fetchData() {
   }
 }
 
+// ===== UPDATE UI =====
 function updateUI(d) {
   document.getElementById('v1').textContent = d.v1.toFixed(1);
   document.getElementById('i1').textContent = d.i1.toFixed(2);
@@ -116,6 +144,7 @@ function setConnectionStatus(online) {
   else { dot.className = 'dot offline'; text.textContent = 'Offline'; }
 }
 
+// ===== TRIP DETECTION =====
 function detectTripEvent(name, desc, current, key) {
   if (current && !lastState[key]) addLogEntry(name, desc, 'TRIPPED');
   else if (!current && lastState[key]) addLogEntry(name, desc, 'RECOVERED');
@@ -154,6 +183,7 @@ function clearLog() {
   }
 }
 
+// ===== SLIDER CONTROLS =====
 const sliderOVR = document.getElementById('slider-ovr');
 const sliderOCR = document.getElementById('slider-ocr');
 sliderOVR.addEventListener('input', () => { document.getElementById('set-ovr-display').textContent = sliderOVR.value; });
@@ -165,12 +195,19 @@ async function applyOCR() { await sendSetpoint('atur_ocr', parseFloat(sliderOCR.
 async function sendSetpoint(resource, value, label) {
   try {
     const url = `${API_BASE}/${resource}?authorization=${TOKEN}`;
-    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value) });
-    if (res.ok) alert(`${label} updated to ${value}`);
-    else alert(`Failed: HTTP ${res.status}`);
-  } catch (err) { alert(`Error: ${err.message}`); }
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(value)
+    });
+    if (res.ok) showToast(`${label} updated to ${value}`, 'success');
+    else showToast(`Failed: HTTP ${res.status}`, 'error');
+  } catch (err) {
+    showToast(`Error: ${err.message}`, 'error');
+  }
 }
 
+// ===== RESET OCR =====
 async function resetOCR() {
   try {
     const url = `${API_BASE}/reset_ocr?authorization=${TOKEN}`;
@@ -179,16 +216,14 @@ async function resetOCR() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(true)
     });
-    if (res.ok) {
-      alert('OCR berhasil direset! Relay akan ON kembali.');
-    } else {
-      alert('Gagal reset OCR: HTTP ' + res.status);
-    }
+    if (res.ok) showToast('OCR berhasil direset! Relay ON kembali.', 'success');
+    else showToast('Gagal reset OCR: HTTP ' + res.status, 'error');
   } catch (err) {
-    alert('Error: ' + err.message);
+    showToast('Error: ' + err.message, 'error');
   }
 }
 
+// ===== CHART =====
 const ctx = document.getElementById('voltageChart').getContext('2d');
 const chart = new Chart(ctx, {
   type: 'line',
@@ -223,6 +258,7 @@ function pushChartData(v1, v2, v3) {
   chart.update('none');
 }
 
+// ===== INIT =====
 renderLog();
 fetchData();
 setInterval(fetchData, REFRESH_INTERVAL);
