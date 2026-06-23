@@ -10,6 +10,8 @@ function checkLogin(event) {
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
     errorEl.textContent = '';
+    fetchData(); 
+    setInterval(fetchData, 1000); 
   } else {
     errorEl.textContent = 'Wrong password!';
     document.getElementById('login-password').value = '';
@@ -23,242 +25,284 @@ const DEVICE_ID = "stm32_power_monitor";
 const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJ3ZWJfZGFzaGJvYXJkIiwic3ZyIjoiYXAtc291dGhlYXN0LmF3cy50aGluZ2VyLmlvIiwidXNyIjoiV0VSUiJ9.xHEp44PF_sOqnQeaTJUHtQGH2GEU1RxoK-s3v0QPwZo";
 // ===========================================
 
-const API_BASE = `https://backend.thinger.io/v3/users/${THINGER_USER}/devices/${DEVICE_ID}/resources`;
-const REFRESH_INTERVAL = 2000;
-const CHART_MAX_POINTS = 30;
+const API_BASE = `https://backend.thinger.io/v3/users/${THINGER_USER}/devices/${DEVICE_ID}`;
 
-const tripLog = JSON.parse(localStorage.getItem('tripLog') || '[]');
-const lastState = { pfr: false, ovr: false, ocr: false };
-
-// ===== TOAST NOTIFICATION =====
-function showToast(message, type) {
-  const existing = document.getElementById('toast');
-  if (existing) existing.remove();
-
-  const toast = document.createElement('div');
-  toast.id = 'toast';
-  toast.textContent = message;
-  toast.style.cssText = `
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background: ${type === 'success' ? '#10b981' : '#ef4444'};
-    color: white;
-    padding: 14px 24px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    z-index: 9999;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    animation: fadeIn 0.3s ease;
-  `;
-  document.body.appendChild(toast);
-  setTimeout(() => { if (toast) toast.remove(); }, 3000);
+async function fetchThinger(endpoint, options = {}) {
+  const headers = {
+    'Authorization': `Bearer ${TOKEN}`,
+    'Content-Type': 'application/json'
+  };
+  const response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+  if (!response.ok) throw new Error('Network response was not ok');
+  return response.json();
 }
 
-// ===== FETCH DATA =====
-async function fetchData() {
-  try {
-    const url = `${API_BASE}/semua_data?authorization=${TOKEN}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    updateUI(data);
-    setConnectionStatus(true);
-  } catch (err) {
-    console.error('Fetch error:', err);
-    setConnectionStatus(false);
-  }
-}
+// ============ CHART.JS CONFIGURATION ============
+const ctx = document.getElementById('trendChart').getContext('2d');
 
-// ===== UPDATE UI =====
-function updateUI(d) {
-  document.getElementById('v1').textContent = d.v1.toFixed(1);
-  document.getElementById('i1').textContent = d.i1.toFixed(2);
-  document.getElementById('f1').textContent = d.f1.toFixed(1);
-  document.getElementById('p1').textContent = d.p1.toFixed(1);
-  document.getElementById('s1').textContent = d.s1.toFixed(1);
-  document.getElementById('q1').textContent = d.q1.toFixed(1);
-  document.getElementById('pf1').textContent = d.pf1.toFixed(2);
+// Memori 60 detik untuk 7 parameter grafik
+const trendHistory = {
+  labels: [],
+  voltage:  { r: [], s: [], t: [] },
+  current:  { r: [], s: [], t: [] },
+  power:    { r: [], s: [], t: [] },
+  apparent: { r: [], s: [], t: [] },
+  reactive: { r: [], s: [], t: [] },
+  frequency:{ r: [], s: [], t: [] },
+  pf:       { r: [], s: [], t: [] }
+};
 
-  document.getElementById('v2').textContent = d.v2.toFixed(1);
-  document.getElementById('i2').textContent = d.i2.toFixed(2);
-  document.getElementById('f2').textContent = d.f2.toFixed(1);
-  document.getElementById('p2').textContent = d.p2.toFixed(1);
-  document.getElementById('s2').textContent = d.s2.toFixed(1);
-  document.getElementById('q2').textContent = d.q2.toFixed(1);
-  document.getElementById('pf2').textContent = d.pf2.toFixed(2);
+let currentMetric = 'voltage';
 
-  document.getElementById('v3').textContent = d.v3.toFixed(1);
-  document.getElementById('i3').textContent = d.i3.toFixed(2);
-  document.getElementById('f3').textContent = d.f3.toFixed(1);
-  document.getElementById('p3').textContent = d.p3.toFixed(1);
-  document.getElementById('s3').textContent = d.s3.toFixed(1);
-  document.getElementById('q3').textContent = d.q3.toFixed(1);
-  document.getElementById('pf3').textContent = d.pf3.toFixed(2);
-
-  document.getElementById('temp').textContent = d.temp.toFixed(1);
-  document.getElementById('hum').textContent = d.hum.toFixed(1);
-  document.getElementById('fan-status').textContent = d.fan ? 'ON' : 'OFF';
-  document.getElementById('fan-status').style.color = d.fan ? '#10b981' : '#6b7280';
-
-  updateProtection('pfr', d.pfr);
-  updateProtection('ovr', d.ovr);
-  updateProtection('ocr', d.ocr);
-
-  detectTripEvent('PFR', 'Phase Failure', d.pfr, 'pfr');
-  detectTripEvent('OVR', 'Over Voltage', d.ovr, 'ovr');
-  detectTripEvent('OCR', 'Over Current', d.ocr, 'ocr');
-
-  document.getElementById('set-ovr-display').textContent = Math.round(d.set_ovr);
-  document.getElementById('set-ocr-display').textContent = Math.round(d.set_ocr);
-  document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
-
-  pushChartData(d.v1, d.v2, d.v3);
-}
-
-function updateProtection(name, tripped) {
-  const card = document.getElementById('card-' + name);
-  const status = document.getElementById('status-' + name);
-  if (tripped) {
-    card.classList.add('tripped');
-    status.textContent = 'TRIPPED';
-    if (name === 'ocr') {
-      const resetBtn = document.getElementById('reset-ocr');
-      if (resetBtn) resetBtn.style.display = 'block';
-    }
-  } else {
-    card.classList.remove('tripped');
-    status.textContent = 'NORMAL';
-    if (name === 'ocr') {
-      const resetBtn = document.getElementById('reset-ocr');
-      if (resetBtn) resetBtn.style.display = 'none';
-    }
-  }
-}
-
-function setConnectionStatus(online) {
-  const dot = document.getElementById('conn-dot');
-  const text = document.getElementById('conn-text');
-  if (online) { dot.className = 'dot online'; text.textContent = 'Online'; }
-  else { dot.className = 'dot offline'; text.textContent = 'Offline'; }
-}
-
-// ===== TRIP DETECTION =====
-function detectTripEvent(name, desc, current, key) {
-  if (current && !lastState[key]) addLogEntry(name, desc, 'TRIPPED');
-  else if (!current && lastState[key]) addLogEntry(name, desc, 'RECOVERED');
-  lastState[key] = current;
-}
-
-function addLogEntry(type, desc, status) {
-  const entry = { time: new Date().toLocaleString('en-GB'), type, desc, status };
-  tripLog.unshift(entry);
-  if (tripLog.length > 50) tripLog.pop();
-  localStorage.setItem('tripLog', JSON.stringify(tripLog));
-  renderLog();
-}
-
-function renderLog() {
-  const tbody = document.getElementById('log-tbody');
-  if (tripLog.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" class="log-empty">No trip events recorded yet</td></tr>';
-    return;
-  }
-  tbody.innerHTML = tripLog.map(e => `
-    <tr>
-      <td>${e.time}</td>
-      <td><strong>${e.type}</strong></td>
-      <td>${e.desc}</td>
-      <td class="${e.status === 'TRIPPED' ? 'log-trip' : 'log-recover'}">${e.status}</td>
-    </tr>
-  `).join('');
-}
-
-function clearLog() {
-  if (confirm('Clear all trip log entries?')) {
-    tripLog.length = 0;
-    localStorage.removeItem('tripLog');
-    renderLog();
-  }
-}
-
-// ===== SLIDER CONTROLS =====
-const sliderOVR = document.getElementById('slider-ovr');
-const sliderOCR = document.getElementById('slider-ocr');
-sliderOVR.addEventListener('input', () => { document.getElementById('set-ovr-display').textContent = sliderOVR.value; });
-sliderOCR.addEventListener('input', () => { document.getElementById('set-ocr-display').textContent = sliderOCR.value; });
-
-async function applyOVR() { await sendSetpoint('atur_ovr', parseFloat(sliderOVR.value), 'OVR'); }
-async function applyOCR() { await sendSetpoint('atur_ocr', parseFloat(sliderOCR.value), 'OCR'); }
-
-async function sendSetpoint(resource, value, label) {
-  try {
-    const url = `${API_BASE}/${resource}?authorization=${TOKEN}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(value)
-    });
-    if (res.ok) showToast(`${label} updated to ${value}`, 'success');
-    else showToast(`Failed: HTTP ${res.status}`, 'error');
-  } catch (err) {
-    showToast(`Error: ${err.message}`, 'error');
-  }
-}
-
-// ===== RESET OCR =====
-async function resetOCR() {
-  try {
-    const url = `${API_BASE}/reset_ocr?authorization=${TOKEN}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(true)
-    });
-    if (res.ok) showToast('OCR berhasil direset! Relay ON kembali.', 'success');
-    else showToast('Gagal reset OCR: HTTP ' + res.status, 'error');
-  } catch (err) {
-    showToast('Error: ' + err.message, 'error');
-  }
-}
-
-// ===== CHART =====
-const ctx = document.getElementById('voltageChart').getContext('2d');
 const chart = new Chart(ctx, {
   type: 'line',
   data: {
-    labels: [],
+    labels: trendHistory.labels,
     datasets: [
-      { label: 'Phase R', data: [], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)', tension: 0.3, borderWidth: 3, pointRadius: 4, borderDash: [] },
-      { label: 'Phase S', data: [], borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.1)', tension: 0.3, borderWidth: 3, pointRadius: 4, borderDash: [8,4] },
-      { label: 'Phase T', data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.3, borderWidth: 3, pointRadius: 4, borderDash: [2,2] }
+      { label: 'Phase R', data: trendHistory.voltage.r, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)', tension: 0.4, borderWidth: 2, pointRadius: 0, fill: true },
+      { label: 'Phase S', data: trendHistory.voltage.s, borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,0.1)', tension: 0.4, borderWidth: 2, pointRadius: 0, fill: true },
+      { label: 'Phase T', data: trendHistory.voltage.t, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.4, borderWidth: 2, pointRadius: 0, fill: true }
     ]
   },
   options: {
-    responsive: true, maintainAspectRatio: false,
+    responsive: true, 
+    maintainAspectRatio: false,
+    animation: false, // Matikan animasi untuk update realtime yg mulus
+    interaction: { mode: 'index', intersect: false },
     scales: {
-      y: { min: 210, max: 230, grid: { color: '#1f2937' }, ticks: { color: '#9ca3af', stepSize: 2 } },
-      x: { grid: { color: '#1f2937' }, ticks: { color: '#9ca3af', maxTicksLimit: 6 } }
+      y: { 
+        suggestedMin: 180, suggestedMax: 250, 
+        grid: { color: '#1f2937' }, 
+        ticks: { color: '#9ca3af' } 
+      },
+      x: { 
+        grid: { color: '#1f2937' }, 
+        ticks: { color: '#9ca3af', maxTicksLimit: 8 } 
+      }
     },
-    plugins: { legend: { labels: { color: '#e4e6eb', usePointStyle: true } } }
+    plugins: { 
+      legend: { labels: { color: '#e4e6eb', usePointStyle: true } },
+      tooltip: { enabled: true }
+    }
   }
 });
 
-function pushChartData(v1, v2, v3) {
-  const time = new Date().toLocaleTimeString().slice(0, 5);
-  chart.data.labels.push(time);
-  chart.data.datasets[0].data.push(v1);
-  chart.data.datasets[1].data.push(v2);
-  chart.data.datasets[2].data.push(v3);
-  if (chart.data.labels.length > CHART_MAX_POINTS) {
-    chart.data.labels.shift();
-    chart.data.datasets.forEach(d => d.data.shift());
+// Fungsi untuk mengganti data & skala grafik
+function changeChartMetric() {
+  currentMetric = document.getElementById('chartMetricSelect').value;
+  
+  chart.data.datasets[0].data = trendHistory[currentMetric].r;
+  chart.data.datasets[1].data = trendHistory[currentMetric].s;
+  chart.data.datasets[2].data = trendHistory[currentMetric].t;
+
+  // Auto-Scaling Y Axis sesuai parameter
+  if (currentMetric === 'voltage') {
+    chart.options.scales.y.suggestedMin = 180; chart.options.scales.y.suggestedMax = 250;
+  } else if (currentMetric === 'current') {
+    chart.options.scales.y.suggestedMin = 0; chart.options.scales.y.suggestedMax = 15; 
+  } else if (currentMetric === 'power' || currentMetric === 'apparent' || currentMetric === 'reactive') {
+    chart.options.scales.y.suggestedMin = 0; chart.options.scales.y.suggestedMax = 3000;
+  } else if (currentMetric === 'frequency') {
+    chart.options.scales.y.suggestedMin = 48; chart.options.scales.y.suggestedMax = 52;
+  } else if (currentMetric === 'pf') {
+    chart.options.scales.y.suggestedMin = 0; chart.options.scales.y.suggestedMax = 1.0;
   }
-  chart.update('none');
+  
+  chart.update();
 }
 
-// ===== INIT =====
-renderLog();
-fetchData();
-setInterval(fetchData, REFRESH_INTERVAL);
+function updateChart(timeLabel, data) {
+  trendHistory.labels.push(timeLabel);
+  
+  trendHistory.voltage.r.push(data.v1); trendHistory.voltage.s.push(data.v2); trendHistory.voltage.t.push(data.v3);
+  trendHistory.current.r.push(data.i1); trendHistory.current.s.push(data.i2); trendHistory.current.t.push(data.i3);
+  trendHistory.power.r.push(data.p1);   trendHistory.power.s.push(data.p2);   trendHistory.power.t.push(data.p3);
+  trendHistory.apparent.r.push(data.s1);trendHistory.apparent.s.push(data.s2);trendHistory.apparent.t.push(data.s3);
+  trendHistory.reactive.r.push(data.q1);trendHistory.reactive.s.push(data.q2);trendHistory.reactive.t.push(data.q3);
+  trendHistory.frequency.r.push(data.f1);trendHistory.frequency.s.push(data.f2);trendHistory.frequency.t.push(data.f3);
+  trendHistory.pf.r.push(data.pf1);     trendHistory.pf.s.push(data.pf2);     trendHistory.pf.t.push(data.pf3);
+
+  // Buang data paling lama jika sudah melebihi 60 titik (60 detik)
+  if (trendHistory.labels.length > 60) {
+    trendHistory.labels.shift();
+    trendHistory.voltage.r.shift(); trendHistory.voltage.s.shift(); trendHistory.voltage.t.shift();
+    trendHistory.current.r.shift(); trendHistory.current.s.shift(); trendHistory.current.t.shift();
+    trendHistory.power.r.shift();   trendHistory.power.s.shift();   trendHistory.power.t.shift();
+    trendHistory.apparent.r.shift();trendHistory.apparent.s.shift();trendHistory.apparent.t.shift();
+    trendHistory.reactive.r.shift();trendHistory.reactive.s.shift();trendHistory.reactive.t.shift();
+    trendHistory.frequency.r.shift();trendHistory.frequency.s.shift();trendHistory.frequency.t.shift();
+    trendHistory.pf.r.shift();      trendHistory.pf.s.shift();      trendHistory.pf.t.shift();
+  }
+  chart.update();
+}
+
+// ============ FETCH DATA & UPDATE UI ============
+let lastPfr = false, lastOvr = false, lastOcr = false;
+
+async function fetchData() {
+  try {
+    const response = await fetchThinger('/resources/semua_data');
+    const data = response.out;
+
+    // Phase R
+    document.getElementById('v1').textContent = data.v1.toFixed(1);
+    document.getElementById('i1').textContent = data.i1.toFixed(2);
+    document.getElementById('p1').textContent = data.p1.toFixed(1);
+    document.getElementById('s1').textContent = data.s1.toFixed(1);
+    document.getElementById('q1').textContent = data.q1.toFixed(1);
+    document.getElementById('f1').textContent = data.f1.toFixed(1);
+    document.getElementById('pf1').textContent = data.pf1.toFixed(2);
+
+    // Phase S
+    document.getElementById('v2').textContent = data.v2.toFixed(1);
+    document.getElementById('i2').textContent = data.i2.toFixed(2);
+    document.getElementById('p2').textContent = data.p2.toFixed(1);
+    document.getElementById('s2').textContent = data.s2.toFixed(1);
+    document.getElementById('q2').textContent = data.q2.toFixed(1);
+    document.getElementById('f2').textContent = data.f2.toFixed(1);
+    document.getElementById('pf2').textContent = data.pf2.toFixed(2);
+
+    // Phase T
+    document.getElementById('v3').textContent = data.v3.toFixed(1);
+    document.getElementById('i3').textContent = data.i3.toFixed(2);
+    document.getElementById('p3').textContent = data.p3.toFixed(1);
+    document.getElementById('s3').textContent = data.s3.toFixed(1);
+    document.getElementById('q3').textContent = data.q3.toFixed(1);
+    document.getElementById('f3').textContent = data.f3.toFixed(1);
+    document.getElementById('pf3').textContent = data.pf3.toFixed(2);
+
+    // Lingkungan
+    document.getElementById('temp').textContent = data.temp.toFixed(1);
+    document.getElementById('hum').textContent = data.hum.toFixed(1);
+
+    // Update Setpoint Display
+    document.getElementById('set-ovr-display').textContent = data.set_ovr;
+    document.getElementById('set-ocr-display').textContent = data.set_ocr;
+
+    // Status Proteksi
+    updateProtectionStatus('pfr', data.pfr);
+    updateProtectionStatus('ovr', data.ovr);
+    updateProtectionStatus('ocr', data.ocr);
+    
+    // Tampilkan tombol RESET OCR jika OCR Tripped
+    const btnResetOcr = document.getElementById('btn-reset-ocr');
+    if (data.ocr) btnResetOcr.style.display = 'block';
+    else btnResetOcr.style.display = 'none';
+
+    // Status Kipas
+    const fanEl = document.getElementById('fan-status');
+    fanEl.textContent = data.fan ? "ON" : "OFF";
+    fanEl.className = data.fan ? "status-badge bg-green" : "status-badge bg-gray";
+
+    // Trip Logging
+    if (data.pfr && !lastPfr) addLogEvent('PFR Trip', 'Phase Failure/Loss Detected', 'danger');
+    if (data.ovr && !lastOvr) addLogEvent('OVR Trip', `Over Voltage Detected (> ${data.set_ovr}V)`, 'danger');
+    if (data.ocr && !lastOcr) addLogEvent('OCR Trip', `Over Current Detected (> ${data.set_ocr}A)`, 'danger');
+    
+    lastPfr = data.pfr;
+    lastOvr = data.ovr;
+    lastOcr = data.ocr;
+
+    // Lempar data ke Grafik
+    const now = new Date();
+    const timeLabel = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0') + ':' + now.getSeconds().toString().padStart(2, '0');
+    
+    updateChart(timeLabel, data);
+
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+}
+
+function updateProtectionStatus(id, isTripped) {
+  const el = document.getElementById(id + '-status');
+  if (isTripped) {
+    el.textContent = 'TRIPPED';
+    el.className = 'status-badge bg-red';
+  } else {
+    el.textContent = 'OK';
+    el.className = 'status-badge bg-green';
+  }
+}
+
+// ============ SETPOINT & COMMANDS ============
+async function applyOVR() {
+  const val = document.getElementById('slider-ovr').value;
+  try {
+    await fetchThinger('/resources/atur_ovr', { method: 'POST', body: JSON.stringify({ in: parseFloat(val) }) });
+    alert(`OVR Setpoint updated to ${val} V`);
+  } catch (e) {
+    alert('Failed to update OVR');
+  }
+}
+
+async function applyOCR() {
+  const val = document.getElementById('slider-ocr').value;
+  try {
+    await fetchThinger('/resources/atur_ocr', { method: 'POST', body: JSON.stringify({ in: parseFloat(val) }) });
+    alert(`OCR Setpoint updated to ${val} A`);
+  } catch (e) {
+    alert('Failed to update OCR');
+  }
+}
+
+async function resetOCR() {
+  try {
+    await fetchThinger('/resources/reset_ocr', { method: 'POST', body: JSON.stringify({ in: true }) });
+    alert('Perintah Reset OCR telah dikirim ke perangkat!');
+  } catch (e) {
+    alert('Gagal mengirim perintah Reset');
+  }
+}
+
+// ============ LOGGING ============
+function addLogEvent(type, description, severity) {
+  const tbody = document.getElementById('log-tbody');
+  const now = new Date();
+  const timeStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+  
+  const emptyRow = document.querySelector('.log-empty');
+  if (emptyRow) emptyRow.parentElement.remove();
+
+  const tr = document.createElement('tr');
+  let statusColor = severity === 'danger' ? '#ef4444' : '#00d9ff';
+  tr.innerHTML = `
+    <td>${timeStr}</td>
+    <td><strong>${type}</strong></td>
+    <td>${description}</td>
+    <td style="color:${statusColor}">${severity === 'danger' ? 'FAULT' : 'INFO'}</td>
+  `;
+  tbody.insertBefore(tr, tbody.firstChild);
+  saveLog();
+}
+
+function saveLog() {
+  const tbody = document.getElementById('log-tbody');
+  localStorage.setItem('powerMonitorLogs', tbody.innerHTML);
+}
+
+function loadLog() {
+  const saved = localStorage.getItem('powerMonitorLogs');
+  if (saved) {
+    document.getElementById('log-tbody').innerHTML = saved;
+  }
+}
+
+function clearLog() {
+  if (confirm('Are you sure you want to clear all logs?')) {
+    const tbody = document.getElementById('log-tbody');
+    tbody.innerHTML = '<tr><td colspan="4" class="log-empty">No trip events recorded yet</td></tr>';
+    localStorage.removeItem('powerMonitorLogs');
+  }
+}
+
+document.getElementById('slider-ovr').addEventListener('input', function() {
+  document.getElementById('set-ovr-display').textContent = this.value;
+});
+document.getElementById('slider-ocr').addEventListener('input', function() {
+  document.getElementById('set-ocr-display').textContent = this.value;
+});
+
+window.onload = () => {
+  loadLog();
+};
