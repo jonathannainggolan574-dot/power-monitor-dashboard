@@ -9,137 +9,228 @@
 </head>
 <body>
 
+<!-- ===== LOGIN SCREEN ===== -->
 <div id="login-screen" class="login-screen">
   <div class="login-box">
+    <div class="login-logo">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="24" r="22" stroke="#00d9ff" stroke-width="2" fill="none" opacity="0.3"/>
+        <path d="M24 8 L28 20 L36 20 L30 27 L33 39 L24 32 L15 39 L18 27 L12 20 L20 20 Z" fill="#00d9ff" opacity="0.9"/>
+      </svg>
+    </div>
     <div class="login-header">
       <h1>Power Monitor</h1>
       <p>3-Phase Real-Time Monitoring System</p>
     </div>
-    <form id="login-form" onsubmit="checkLogin(event)">
-      <div class="login-field">
-        <label>Password</label>
-        <input type="password" id="login-password" placeholder="Enter password" autofocus required>
-      </div>
-      <div id="login-error" class="login-error"></div>
-      <button type="submit" class="login-btn">LOGIN</button>
-    </form>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Enter password" autofocus>
+    </div>
+    <div id="login-error" class="login-error"></div>
+    <button class="login-btn" id="login-btn" onclick="checkLogin()">
+      <span id="login-btn-text">LOGIN</span>
+    </button>
     <div class="login-footer">STM32 + ESP32 + Thinger.io</div>
   </div>
 </div>
 
+<!-- ===== TOAST NOTIFICATION ===== -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- ===== DASHBOARD ===== -->
 <div id="dashboard" class="hidden">
 
   <header>
     <div class="header-content">
-      <div>
-        <h1>Power Monitor</h1>
-        <p class="subtitle">3-Phase Real-Time Monitoring System</p>
+      <div class="header-left">
+        <div class="header-logo">
+          <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+            <path d="M24 8 L28 20 L36 20 L30 27 L33 39 L24 32 L15 39 L18 27 L12 20 L20 20 Z" fill="#00d9ff"/>
+          </svg>
+        </div>
+        <div>
+          <h1>Power Monitor</h1>
+          <p class="subtitle">3-Phase Real-Time Monitoring</p>
+        </div>
       </div>
-      <div class="status-indicator">
-        <span class="dot" style="background-color: #10b981;"></span>
-        <span>System Online</span>
+      <div class="header-right">
+        <div class="status-indicator" id="connection-status">
+          <span class="dot" id="status-dot"></span>
+          <span id="status-text">Connecting...</span>
+        </div>
+        <div class="last-update-wrap">
+          <span class="last-update-label">Last update</span>
+          <span id="last-update-time">--:--:--</span>
+        </div>
+        <button class="logout-btn" onclick="logout()" title="Logout">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Logout
+        </button>
       </div>
     </div>
   </header>
 
   <main>
-    <section class="grid-container">
+
+    <!-- ===== PHASE CARDS ===== -->
+    <section class="grid-container three-col">
       <div class="card border-r">
-        <h3>PHASE R</h3>
-        <div class="data-row"><span>Voltage</span><span class="value"><span id="v1">0.0</span> V</span></div>
-        <div class="data-row"><span>Current</span><span class="value"><span id="i1">0.00</span> A</span></div>
-        <div class="data-row"><span>Active Power</span><span class="value"><span id="p1">0.0</span> W</span></div>
-        <div class="data-row"><span>Apparent Power</span><span class="value"><span id="s1">0.0</span> VA</span></div>
-        <div class="data-row"><span>Reactive Power</span><span class="value"><span id="q1">0.0</span> VAR</span></div>
-        <div class="data-row"><span>Frequency</span><span class="value"><span id="f1">0.0</span> Hz</span></div>
-        <div class="data-row"><span>Power Factor</span><span class="value"><span id="pf1">0.00</span></span></div>
+        <h3><span class="phase-dot dot-r"></span>PHASE R</h3>
+        <div class="data-row"><span>Voltage</span><span class="value"><span id="v1">—</span> <em>V</em></span></div>
+        <div class="data-row"><span>Current</span><span class="value"><span id="i1">—</span> <em>A</em></span></div>
+        <div class="data-row"><span>Active Power</span><span class="value"><span id="p1">—</span> <em>W</em></span></div>
+        <div class="data-row"><span>Apparent Power</span><span class="value"><span id="s1">—</span> <em>VA</em></span></div>
+        <div class="data-row"><span>Reactive Power</span><span class="value"><span id="q1">—</span> <em>VAR</em></span></div>
+        <div class="data-row"><span>Frequency</span><span class="value"><span id="f1">—</span> <em>Hz</em></span></div>
+        <div class="data-row"><span>Power Factor</span><span class="value"><span id="pf1">—</span></span></div>
       </div>
       <div class="card border-s">
-        <h3>PHASE S</h3>
-        <div class="data-row"><span>Voltage</span><span class="value"><span id="v2">0.0</span> V</span></div>
-        <div class="data-row"><span>Current</span><span class="value"><span id="i2">0.00</span> A</span></div>
-        <div class="data-row"><span>Active Power</span><span class="value"><span id="p2">0.0</span> W</span></div>
-        <div class="data-row"><span>Apparent Power</span><span class="value"><span id="s2">0.0</span> VA</span></div>
-        <div class="data-row"><span>Reactive Power</span><span class="value"><span id="q2">0.0</span> VAR</span></div>
-        <div class="data-row"><span>Frequency</span><span class="value"><span id="f2">0.0</span> Hz</span></div>
-        <div class="data-row"><span>Power Factor</span><span class="value"><span id="pf2">0.00</span></span></div>
+        <h3><span class="phase-dot dot-s"></span>PHASE S</h3>
+        <div class="data-row"><span>Voltage</span><span class="value"><span id="v2">—</span> <em>V</em></span></div>
+        <div class="data-row"><span>Current</span><span class="value"><span id="i2">—</span> <em>A</em></span></div>
+        <div class="data-row"><span>Active Power</span><span class="value"><span id="p2">—</span> <em>W</em></span></div>
+        <div class="data-row"><span>Apparent Power</span><span class="value"><span id="s2">—</span> <em>VA</em></span></div>
+        <div class="data-row"><span>Reactive Power</span><span class="value"><span id="q2">—</span> <em>VAR</em></span></div>
+        <div class="data-row"><span>Frequency</span><span class="value"><span id="f2">—</span> <em>Hz</em></span></div>
+        <div class="data-row"><span>Power Factor</span><span class="value"><span id="pf2">—</span></span></div>
       </div>
       <div class="card border-t">
-        <h3>PHASE T</h3>
-        <div class="data-row"><span>Voltage</span><span class="value"><span id="v3">0.0</span> V</span></div>
-        <div class="data-row"><span>Current</span><span class="value"><span id="i3">0.00</span> A</span></div>
-        <div class="data-row"><span>Active Power</span><span class="value"><span id="p3">0.0</span> W</span></div>
-        <div class="data-row"><span>Apparent Power</span><span class="value"><span id="s3">0.0</span> VA</span></div>
-        <div class="data-row"><span>Reactive Power</span><span class="value"><span id="q3">0.0</span> VAR</span></div>
-        <div class="data-row"><span>Frequency</span><span class="value"><span id="f3">0.0</span> Hz</span></div>
-        <div class="data-row"><span>Power Factor</span><span class="value"><span id="pf3">0.00</span></span></div>
+        <h3><span class="phase-dot dot-t"></span>PHASE T</h3>
+        <div class="data-row"><span>Voltage</span><span class="value"><span id="v3">—</span> <em>V</em></span></div>
+        <div class="data-row"><span>Current</span><span class="value"><span id="i3">—</span> <em>A</em></span></div>
+        <div class="data-row"><span>Active Power</span><span class="value"><span id="p3">—</span> <em>W</em></span></div>
+        <div class="data-row"><span>Apparent Power</span><span class="value"><span id="s3">—</span> <em>VA</em></span></div>
+        <div class="data-row"><span>Reactive Power</span><span class="value"><span id="q3">—</span> <em>VAR</em></span></div>
+        <div class="data-row"><span>Frequency</span><span class="value"><span id="f3">—</span> <em>Hz</em></span></div>
+        <div class="data-row"><span>Power Factor</span><span class="value"><span id="pf3">—</span></span></div>
       </div>
     </section>
 
-    <section class="grid-container">
+    <!-- ===== ENV + PROTECTION ===== -->
+    <section class="grid-container two-col">
       <div class="card">
         <h3>ENVIRONMENT</h3>
-        <div class="data-row"><span>Temperature</span><span class="value"><span id="temp">0.0</span> °C</span></div>
-        <div class="data-row"><span>Humidity</span><span class="value"><span id="hum">0.0</span> %</span></div>
-        <div class="data-row"><span>Fan Status</span><span id="fan-status" class="status-badge bg-gray">OFF</span></div>
+        <div class="data-row">
+          <span>Temperature</span>
+          <span class="value"><span id="temp">—</span> <em>°C</em></span>
+        </div>
+        <div class="data-row">
+          <span>Humidity</span>
+          <span class="value"><span id="hum">—</span> <em>%</em></span>
+        </div>
+        <div class="data-row">
+          <span>Cooling Fan</span>
+          <span id="fan-status" class="status-badge bg-gray">OFF</span>
+        </div>
       </div>
       <div class="card">
         <h3>PROTECTION STATUS</h3>
-        <div class="data-row"><span>Phase Failure (PFR)</span><span id="pfr-status" class="status-badge bg-green">OK</span></div>
-        <div class="data-row"><span>Over Voltage (OVR)</span><span id="ovr-status" class="status-badge bg-green">OK</span></div>
-        <div class="data-row"><span>Over Current (OCR)</span><span id="ocr-status" class="status-badge bg-green">OK</span></div>
+        <div class="data-row">
+          <span>Phase Failure (PFR)</span>
+          <span id="pfr-status" class="status-badge bg-green">OK</span>
+        </div>
+        <div class="data-row">
+          <span>Over Voltage (OVR)</span>
+          <span id="ovr-status" class="status-badge bg-green">OK</span>
+        </div>
+        <div class="data-row">
+          <span>Over Current (OCR)</span>
+          <span id="ocr-status" class="status-badge bg-green">OK</span>
+        </div>
       </div>
     </section>
 
+    <!-- ===== SETPOINTS ===== -->
     <section>
       <h2>Protection Setpoints</h2>
-      <div class="grid-container">
+      <div class="grid-container two-col">
         <div class="setpoint-card">
-          <div class="setpoint-header"><span>Over Voltage Limit</span><span class="setpoint-value"><span id="set-ovr-display">240</span> V</span></div>
+          <div class="setpoint-header">
+            <span>Over Voltage Limit</span>
+            <span class="setpoint-value"><span id="set-ovr-display">240</span> V</span>
+          </div>
           <input type="range" id="slider-ovr" min="200" max="300" step="1" value="240">
           <div class="setpoint-range"><span>200 V</span><span>300 V</span></div>
-          <button class="btn-apply" onclick="applyOVR()">Apply OVR</button>
+          <button class="btn-apply" onclick="applyOVR()">Apply OVR Setpoint</button>
         </div>
         <div class="setpoint-card">
-          <div class="setpoint-header"><span>Over Current Limit</span><span class="setpoint-value"><span id="set-ocr-display">10</span> A</span></div>
+          <div class="setpoint-header">
+            <span>Over Current Limit</span>
+            <span class="setpoint-value"><span id="set-ocr-display">10</span> A</span>
+          </div>
           <input type="range" id="slider-ocr" min="1" max="100" step="1" value="10">
           <div class="setpoint-range"><span>1 A</span><span>100 A</span></div>
-          <button class="btn-apply" onclick="applyOCR()">Apply OCR</button>
-          <button id="btn-reset-ocr" class="btn-apply" style="background:#ef4444; margin-top:10px; display:none;" onclick="resetOCR()">RESET OCR TRIPPED</button>
+          <button class="btn-apply" onclick="applyOCR()">Apply OCR Setpoint</button>
+          <button id="btn-reset-ocr" class="btn-reset hidden" onclick="resetOCR()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.14"/></svg>
+            RESET OCR TRIPPED
+          </button>
         </div>
       </div>
     </section>
 
+    <!-- ===== CHART ===== -->
     <section>
       <div class="chart-header">
-        <h2>Trend History (Last 60s)</h2>
-        <select id="chartMetricSelect" class="chart-select" onchange="changeChartMetric()">
-          <option value="voltage">Voltage (V)</option>
-          <option value="current">Current (A)</option>
-          <option value="power">Active Power (W)</option>
-          <option value="apparent">Apparent Power (VA)</option>
-          <option value="reactive">Reactive Power (VAR)</option>
-          <option value="frequency">Frequency (Hz)</option>
-          <option value="pf">Power Factor (PF)</option>
-        </select>
+        <h2>Trend History <span class="chart-subtitle" id="chart-window-label">Last 24 Hours</span></h2>
+        <div class="chart-controls">
+          <select id="chartWindowSelect" class="chart-select" onchange="changeChartWindow()">
+            <option value="1h">Last 1 Hour</option>
+            <option value="6h">Last 6 Hours</option>
+            <option value="24h" selected>Last 24 Hours</option>
+          </select>
+          <select id="chartMetricSelect" class="chart-select" onchange="changeChartMetric()">
+            <option value="voltage">Voltage (V)</option>
+            <option value="current">Current (A)</option>
+            <option value="power">Active Power (W)</option>
+            <option value="apparent">Apparent Power (VA)</option>
+            <option value="reactive">Reactive Power (VAR)</option>
+            <option value="frequency">Frequency (Hz)</option>
+            <option value="pf">Power Factor</option>
+          </select>
+        </div>
       </div>
-      <div class="chart-container"><canvas id="trendChart"></canvas></div>
+      <div class="chart-container">
+        <canvas id="trendChart"></canvas>
+      </div>
     </section>
 
+    <!-- ===== TRIP LOG ===== -->
     <section>
-      <h2>Trip History Log</h2>
+      <div class="log-header-row">
+        <h2>Trip History Log</h2>
+        <div class="log-meta">
+          <span id="log-count" class="log-count">0 events</span>
+          <button class="btn-clear" onclick="clearLog()">Clear Log</button>
+        </div>
+      </div>
       <div class="log-container">
         <table class="log-table">
-          <thead><tr><th>Timestamp</th><th>Type</th><th>Description</th><th>Status</th></tr></thead>
-          <tbody id="log-tbody"><tr><td colspan="4" class="log-empty">No trip events recorded yet</td></tr></tbody>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="log-tbody">
+            <tr class="log-empty-row">
+              <td colspan="4" class="log-empty">No trip events recorded yet</td>
+            </tr>
+          </tbody>
         </table>
       </div>
-      <button class="btn-clear" onclick="clearLog()">Clear Log</button>
     </section>
+
   </main>
 
   <footer>
-    <p>STM32 + ESP32 + Thinger.io</p>
+    <p>STM32 Nucleo-F446RE &nbsp;·&nbsp; ESP32 &nbsp;·&nbsp; Thinger.io</p>
   </footer>
 </div>
 
