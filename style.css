@@ -21,6 +21,11 @@
   --green:      #10b981;
   --radius:     12px;
   --radius-sm:  8px;
+
+  /* Lebar konten adaptif: skala naik mengikuti lebar layar,
+     supaya proporsi tetap pas dari laptop 13" sampai monitor 4K.
+     Lihat juga breakpoint tambahan di bagian RESPONSIVE. */
+  --content-max-width: min(94vw, 1400px);
 }
 
 body {
@@ -50,7 +55,7 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 1400px;
+  max-width: var(--content-max-width);
   margin: 0 auto;
   gap: 16px;
 }
@@ -179,9 +184,9 @@ h1 {
    MAIN LAYOUT
    ============================================================ */
 main {
-  max-width: 1400px;
+  max-width: var(--content-max-width);
   margin: 0 auto;
-  padding: 30px 24px 60px;
+  padding: 30px clamp(16px, 3vw, 40px) 60px;
 }
 
 section { margin-bottom: 32px; }
@@ -693,6 +698,24 @@ footer {
   font-size: 12px;
   padding: 20px;
   border-top: 1px solid var(--border);
+}
+
+/* ============================================================
+   RESPONSIVE — LARGE / WIDE SCREENS (≥ 1600px)
+   Monitor lebar atau laptop dengan resolusi tinggi: konten
+   melebar proporsional, kartu fase tetap nyaman dibaca tanpa
+   harus zoom.
+   ============================================================ */
+@media screen and (min-width: 1600px) {
+  :root { --content-max-width: 1600px; }
+  h1 { font-size: 24px; }
+  .card, .setpoint-card { padding: 24px; }
+  .data-row { font-size: 15px; }
+}
+
+@media screen and (min-width: 1920px) {
+  :root { --content-max-width: 1800px; }
+  body { font-size: 16px; }
 }
 
 /* ============================================================
